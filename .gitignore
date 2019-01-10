@@ -1,0 +1,38 @@
+# Java ignores
+*.class
+#*.log
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# C ignores
+a.out
+*.o
+*.a
+*.so
+
+# Editor ignores
+*.bak
+*.swp
+*.swo
+*~
+
+# Other
+*.exe
+*.tgz
+*.tar
+*.pkg
+*.dmg
+*.img
+*.iso
+*.dll
+
+
+##########################
+## OS X
+##########################
+.DS_Store
+*/.DS_Store
