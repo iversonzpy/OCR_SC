@@ -1,8 +1,8 @@
 # OCR_SC Project:
 
-* Get idea from Python_ocr_turorial: https://realpython.com/blog/python/setting-up-a-simple-ocr-server/
+* Get ideas from Python_ocr_turorial: https://realpython.com/blog/python/setting-up-a-simple-ocr-server/
 * Combine with nodejs to store images
-* Uploading to be contine
+* Uploading to be continued
 * Build with Docker
 
 ## Instructions:
