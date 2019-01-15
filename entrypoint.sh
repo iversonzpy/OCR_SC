@@ -1,4 +1,4 @@
 cd /image_server
-nohup nodejs file.js &
+nohup node app.js &
 cd /flask_server
 python app.py

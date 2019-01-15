@@ -54,12 +54,6 @@ RUN wget https://cfhcable.dl.sourceforge.net/project/tesseract-ocr-alt/tesseract
 RUN tar -xf tesseract-ocr-3.02.eng.tar.gz
 RUN sudo cp -r tesseract-ocr/tessdata /usr/local/share/
 
-# install Nodejs
-RUN apt-get install -y npm
-
-WORKDIR /image_server
-ADD ./image_server/ /image_server
-RUN ls
 
 # update working directories
 ADD ./flask_server /flask_server
@@ -68,8 +62,27 @@ WORKDIR /flask_server
 #EXPOSE 5000
 #CMD ["python", "app.py"]
 
-#CMD nohup sh -c 'nodejs /image_server/file.js && python /flask_server/app.py'
+#nodejs
+WORKDIR /
+ENV NODE_PATH=/usr/local/lib/node_modules
+RUN curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
+RUN apt-get install -y nodejs
+RUN npm install npm --global
+
+RUN mkdir -p /image_server
+
+ADD ./image_server /image_server
+
+WORKDIR /image_server
+
+RUN ls
+
+RUN mkdir images
+
+RUN npm install request --save
+RUN npm install
 
 WORKDIR /
 ADD entrypoint.sh /
 ENTRYPOINT ["sh", "./entrypoint.sh"]
+
