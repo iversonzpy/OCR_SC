@@ -5,7 +5,7 @@
 * Uploading to be continued
 * Build with Docker
 
-### Update on 2019.1.15
+### Updated on 2019.1.15
 Updated backend image server with upload API.
 
 ##### An easier way to use:
