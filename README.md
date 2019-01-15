@@ -5,6 +5,20 @@
 * Uploading to be continued
 * Build with Docker
 
+### Update on 2019.1.15
+Updated backend image server with upload API.
+
+##### An easier way to use:
+Pull image from docker hub.
+```sh
+# docker pull miedocker/ubuntu-ocr-backend:1.0.0
+# docker run -d -p 8080:8080 miedocker/ubuntu-ocr-backend:1.0.0
+```
+##### Use postman to test:
+![Image of Testing with Postman-1](https://raw.githubusercontent.com/iversonzpy/OCR_SC/upload_server/files/postman_test1.jpg)
+![Image of Testing with Postman-2](https://raw.githubusercontent.com/iversonzpy/OCR_SC/upload_server/files/postman_test2.jpg)
+
+
 ## Instructions:
 
 Inside project folder, you can put your testing images to /image_server/img/, jpg files only for now.
