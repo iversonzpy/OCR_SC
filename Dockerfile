@@ -80,6 +80,7 @@ RUN ls
 RUN mkdir images
 
 RUN npm install request --save
+RUN npm install -g forever
 RUN npm install
 
 WORKDIR /

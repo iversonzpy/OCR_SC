@@ -4,7 +4,17 @@
     <title>Welcome to OCR</title>
   </head>
   <body>
-    <p>Welcome! This is an demo RestAPI for  <strong>online OCR.</strong>.</p>
-    <p>Enjoy</p>
+  	<div>
+	    <p>Welcome! This is a demo Restful API for  <strong>online OCR.</strong></p>
+	    <p>Enjoy</p>
+	</div>
+	<div>
+  		<form method="POST" enctype="multipart/form-data" action="/images/upload">
+			<table>
+				<tr><td>File to upload:</td><td><input type="file" name="image" /></td></tr>
+				<tr><td></td><td><input type="submit" value="upload" /></td></tr>
+			</table>
+		</form>
+	</div>
   </body>
 </html>

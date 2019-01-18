@@ -29,13 +29,14 @@ Install Docker CE on your computer.
 # docker build . -t python_ocr_with_node:latest
 ```
 after build succefully
+check your IMAGE_ID by running docker images
 ```sh
 # docker images
-# docker run -d -p 8000:8000 -p 5000:5000 'IMAGE_ID'
+# docker run -d -p 8080:8080 'IMAGE_ID'
 ```
 or
 ```sh
-# docker run -it -p 8000:8000 -p 5000:5000 'IMAGE_ID' /bin/sh
+# docker run -it -p 8080:8080 'IMAGE_ID' /bin/sh
 ```
 
 To run some commands in docker container, use docker ps to get the 'CONTAINER_ID':
@@ -44,16 +45,10 @@ To run some commands in docker container, use docker ps to get the 'CONTAINER_ID
 # docker exec -it 'CONTAINER_ID' /bin/sh
 ```
 
-It will run nodejs at port 8000, ocr at port 5000.
+It will run nodejs at port 8080.
 
 To test image server is running:
 ```sh
-# curl http://localhost:8000/index.html
+# curl http://localhost:8080/index.html
 ```
 It will return index.html.
-
-To test your images: 
-```sh
-# curl -X POST http://localhost:5000/v1/ocr -d '{"image_url": "http://localhost:8000/img/sample2.jpg"}' -H "Content-Type: application/json"
-```
-Change your image url in the above command.
