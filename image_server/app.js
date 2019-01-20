@@ -10,17 +10,20 @@ const router = express.Router()
 const port     = process.env.PORT || 8080;
 
 const requestOcr = require('request')
-const ocrurl = "http://localhost:5000/v1/ocr";
-const imageurl = "http://localhost:" + port
+//const ocrurl = "http://localhost:5000/v1/ocr";
+//const imageurl = "http://localhost:" + port
+//
+var outputJson = ''
+var labels = []
 
 const upload = multer({
     dest:'images/', 
-    limits: {fileSize: 2 * 1024 * 1024, files: 1},
+    limits: {fileSize: 20 * 1024 * 1024, files: 1},
     fileFilter:  (req, file, callback) => {
     
-        if (!file.originalname.match(/\.(jpg)$/)) {
+        if (!file.originalname.match(/\.(jpg|png|jpeg)$/)) {
 
-            return callback(new Error('Only .jpg Images are allowed !'), false)
+            return callback(new Error('Only Images are allowed !'), false)
         }
 
         callback(null, true);
@@ -28,20 +31,26 @@ const upload = multer({
 }).single('image')
 
 
+const vision = require('@google-cloud/vision');
+
+
+
 router.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html')
-    //res.json({message: 'Welcome to OCR API'})
+    //res.json({output: 'Welcome to OCR API'})
 })
 
-// deal with the post request when user want upload file
-router.post('/images/upload', (req, res) => {
+
+router.post('/images/upload2', (req, res) => {
 
     try{
         upload(req, res, function (err) {
 
             if (err) {
+                console.log("Upload Error")
+                console.log(err.message)
 
-                res.status(400).json({message: err.message})
+                res.status(400).json({output: err.message})
 
             } else {
 
@@ -49,9 +58,10 @@ router.post('/images/upload', (req, res) => {
                 //let path = `/images/${req.file.filename}`
                 try{
                 // get the uploaded image path
-                    var path = `/images/${req.file.filename}`
+                    var path = `images/${req.file.filename}`
+                    console.log(path)
                 }catch(error){
-                    res.status(400).json({message: error.message})
+                    res.status(400).json({output: error.message})
                     res.end()
                 }
 
@@ -60,25 +70,28 @@ router.post('/images/upload', (req, res) => {
                     
                     // request for ocr to recognise the text
                     console.log("Request for OCR for file " + path)
+                    const client = new vision.ImageAnnotatorClient();
 
-                    var data = {
-                        url: ocrurl,
-                        json: true,
-                        headers: {
-                            "content-type": "application/json",
-                        },
-                        body: { 'image_url' : imageurl + path }
-                    }
-                
-               // var ocrBody = {'output' : 'Error, please upload image again.'}
-                    requestOcr.post(data, function(error, httpResponse, body){
-                        console.log("Reponse from OCR url")
-                        res.status(200).json(body)
+
+                    client
+                      .textDetection(path)
+                      .then(results => {
+                        const detections = results[0].documentTextDetection;
+                        console.log('Text:');
+                        detections.forEach(text => console.log(text.description));
+                        //console.log(detections[0].description);
+                        res.status(200).json({output: detections[0].description});
+                    })
+                    .catch(err => {
+                        console.error('ERROR:', err);
+                        res.status(400).json({output: ""})
+                        res.end()
                     });
+
                 }
                 else
                 {
-                    res.status(400).json({message: "Request Error"})
+                    res.status(400).json({output: "Image not found on server"})
                     res.end()
                 }
                 
@@ -86,8 +99,237 @@ router.post('/images/upload', (req, res) => {
         })
     }
     catch(err){
-        res.status(400).json({message: error.message})
+        res.status(400).json({output: err.message})
         res.end()
+    }
+})
+
+
+router.post('/images/upload3', (req, res) => {
+
+    try{
+        upload(req, res, function (err) {
+
+            if (err) {
+                console.log("Upload Error")
+                console.log(err.message)
+
+                res.status(400).json({output: err.message})
+
+            } else {
+
+                // get the uploaded image path
+                //let path = `/images/${req.file.filename}`
+                try{
+                // get the uploaded image path
+                    var path = `images/${req.file.filename}`
+                    console.log(path)
+                }catch(error){
+                    res.status(400).json({output: error.message})
+                    res.end()
+                }
+
+                if ( typeof path !== 'undefined' && path )
+                {
+                    
+                    // request for ocr to recognise the text
+                    console.log("Request for OCR for file " + path)
+                    const client = new vision.ImageAnnotatorClient();
+                    const client2 = new vision.ImageAnnotatorClient();
+                    
+
+                    //res.writeHead(200, {"Content-Type": "application/json"});
+                    client
+                      .textDetection(path)
+                      .then(results => {
+                        const detections = results[0].textAnnotations;
+                        console.log('Text:');
+                        if(typeof(detections) == 'undefined' || typeof(detections[0]) == 'undefined'){
+                            outputJson = 'Unrecognized Text';
+                        }else{
+                            //detections.forEach(text => console.log(text.description));
+                            //console.log(detections[0].description);
+                            //res.status(200).json({output: detections[0].description});
+                            outputJson = detections[0].description;
+                        }
+                            console.log("outputJson----------------");
+                            console.log(outputJson);
+                        
+                        //res.status(200).json({output: outputJson});
+                        //res.write(JSON.stringify({output: outputJson})); 
+                        client2
+                          .labelDetection(path)
+                          .then(results => {
+                            const detections = results[0].labelAnnotations;
+                            console.log('Labels:');
+                            if(typeof(detections) == "undefined"){
+                                outputJson = 'Unrecognized Text';
+                            }else{
+                            //detections.forEach(label => console.log(label.description));
+                            detections.forEach(label => labels.push(label.description));
+                            }
+                            //console.log(detections[0].description);
+                            //res.status(200).json({output: detections[0].description});
+                            console.log("Labels----------------");
+                            console.log(labels.toString())
+
+                            if(labels.length > 4){
+                                labels = labels.slice(0, 5);
+                            }
+
+                            //res.status(200).json({labels: labels.toString()});
+                            res.status(200).json({
+                                output: outputJson,
+                                labels: labels.toString()});
+                            res.end();
+
+                        })
+                        .catch(err => {
+                        console.error('ERROR:', err);
+                        throw err;
+                        //res.status(400).json({output: ""})
+                        //res.end()
+                        });
+                    })
+                    .catch(err => {
+                        console.error('ERROR:', err);
+                        throw err;
+                        //res.status(400).json({output: ""})
+                        //res.end()
+                    });
+                }
+                else
+                {
+                    res.status(400).json({output: "Image not found on server", 
+                    labels: ''})
+                    res.end()
+                }
+                
+            }
+        })
+    }
+    catch(err){
+        //res.status(400).json({output: err.message})
+        console.log(err.message);
+        res.status(400).json({
+            output: outputJson,
+            labels: labels.toString()});
+        
+        res.end()
+    }
+})
+
+
+router.post('/images/upload', (req, res) => {
+
+    try{
+        upload(req, res, function (err) {
+
+            if (err) {
+                console.log("Upload Error")
+                console.log(err.message)
+
+                res.status(400).json({output: err.message})
+
+            } else {
+
+                // get the uploaded image path
+                //let path = `/images/${req.file.filename}`
+                try{
+                // get the uploaded image path
+                    var path = `images/${req.file.filename}`
+                    console.log(path)
+                }catch(error){
+                    res.status(400).json({output: error.message})
+                }
+
+                if ( typeof path !== 'undefined' && path )
+                {
+                    
+                    // request for ocr to recognise the text
+                    console.log("Request for OCR for file " + path)
+                    const client = new vision.ImageAnnotatorClient();
+                    const client2 = new vision.ImageAnnotatorClient();
+                    
+
+                    //res.writeHead(200, {"Content-Type": "application/json"});
+                    client
+                      .documentTextDetection(path)
+                      .then(results => {
+                        const fullTextAnnotation = results[0].fullTextAnnotation;
+                        console.log('fullTextAnnotation:');
+                        if(typeof(fullTextAnnotation) == 'undefined'){
+                            //outputJson = 'Unrecognized Text';
+                            console.log("Unrecognized Text");
+                        }else{
+                            //detections.forEach(text => console.log(text.description));
+                            console.log("fullTextAnnotation----------------");
+                            console.log(fullTextAnnotation.text);
+                            //res.status(200).json({output: detections[0].description});
+                            outputJson = fullTextAnnotation.text;
+                        }
+                            
+                            //console.log(outputJson);
+                        
+                        //res.status(200).json({output: outputJson});
+                        //res.write(JSON.stringify({output: outputJson})); 
+                        client2
+                          .labelDetection(path)
+                          .then(results => {
+                            const detections = results[0].labelAnnotations;
+                            console.log('Labels:');
+                            if(typeof(detections) == "undefined"){
+                                labels = 'Unrecognized Labels';
+                            }else{
+                            //detections.forEach(label => console.log(label.description));
+                            detections.forEach(label => labels.push(label.description));
+                            }
+                            //console.log(detections[0].description);
+                            //res.status(200).json({output: detections[0].description});
+                            console.log("Labels----------------");
+                            console.log(labels.toString())
+
+                            if(labels.length > 4){
+                                labels = labels.slice(0, 5);
+                            }
+
+                            //res.status(200).json({labels: labels.toString()});
+                            res.status(200).json({
+                                output: outputJson,
+                                labels: labels.toString()});
+                            res.end();
+
+                        })
+                        .catch(err => {
+                        console.error('ERROR:', err);
+                        throw err;
+                        //res.status(400).json({output: ""})
+                        //res.end()
+                        });
+                    })
+                    .catch(err => {
+                        console.error('ERROR:', err);
+                        throw err;
+                        //res.status(400).json({output: ""})
+                        //res.end()
+                    });
+                }
+                else
+                {
+                    res.status(400).json({output: "Image not found on server", 
+                    labels: ''})
+                }
+                
+            }
+        })
+    }
+    catch(err){
+        //res.status(400).json({output: err.message})
+        console.log(err.message);
+        res.status(400).json({
+            output: outputJson,
+            labels: labels.toString()});
+        
     }
 })
 
@@ -108,11 +350,11 @@ app.use((err, req, res, next) => {
 
     if (err.code == 'ENOENT') {
         
-        res.status(404).json({message: 'Image Not Found !'})
+        res.status(404).json({output: 'Image Not Found !'})
 
     } else {
 
-        res.status(500).json({message:err.message}) 
+        res.status(500).json({output: err.message}) 
     } 
 })
 
