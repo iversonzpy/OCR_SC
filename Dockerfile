@@ -82,6 +82,7 @@ RUN mkdir images
 RUN npm install request --save
 RUN npm install -g forever
 RUN npm install
+RUN export GOOGLE_APPLICATION_CREDENTIALS=/image_server/google.json
 
 WORKDIR /
 ADD entrypoint.sh /
